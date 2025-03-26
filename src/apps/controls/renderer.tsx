@@ -1,59 +1,33 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "@/apps/controls/components/App";
+import "./index.css"; // Ensure CSS is imported
 
-// Create a root element
+// Create a simple fallback element to display in case of error
+const fallbackElement = document.createElement('div');
+fallbackElement.innerHTML = '<div style="padding: 20px; text-align: center; color: white; font-family: sans-serif; background-color: #0f172a; height: 100vh;"><h1>Gemini Cursor</h1><p>Loading application...</p></div>';
+document.body.appendChild(fallbackElement);
+
+// Look for root element
 const rootElement = document.getElementById("root");
 
-// Add error display for debugging
 if (!rootElement) {
-  document.body.innerHTML = "<h1>Error: Root element not found</h1>";
   console.error("Root element 'root' not found in the document");
+  fallbackElement.innerHTML = '<div style="padding: 20px; text-align: center; color: white; font-family: sans-serif; background-color: #0f172a; height: 100vh;"><h1>Error: Root element not found</h1><p>Could not find the root element to mount the application.</p></div>';
 } else {
   try {
-    // Create root and render with error boundary
+    // Remove fallback once we start rendering
+    document.body.removeChild(fallbackElement);
+    
+    // Create root and render
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
-        <ErrorBoundary>
-          <App />
-        </ErrorBoundary>
+        <App />
       </React.StrictMode>
     );
   } catch (error) {
     console.error("Rendering error:", error);
-    document.body.innerHTML = `<h1>Application Error</h1><pre>${error}</pre>`;
-  }
-}
-
-// Simple error boundary component
-class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error?: Error}> {
-  constructor(props: {children: React.ReactNode}) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("React error boundary caught error:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
-          <h1>Something went wrong</h1>
-          <details>
-            <summary>Error details</summary>
-            <pre>{this.state.error?.toString()}</pre>
-            <pre>{this.state.error?.stack}</pre>
-          </details>
-        </div>
-      );
-    }
-
-    return this.props.children;
+    fallbackElement.innerHTML = `<div style="padding: 20px; text-align: center; color: white; font-family: sans-serif; background-color: #0f172a; height: 100vh;"><h1>Application Error</h1><p>${error}</p></div>`;
+    document.body.appendChild(fallbackElement);
   }
 }
