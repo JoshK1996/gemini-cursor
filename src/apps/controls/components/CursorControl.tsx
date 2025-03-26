@@ -92,13 +92,29 @@ async function getPointsFromImage(
   base64Image: string,
   points: { description: string; delay: number }[]
 ) {
-  const apiKey = localStorage.getItem("geminiApiKey");
-  if (!apiKey) {
-    throw new Error("API key not found in localStorage");
+  // First try to get API key from environment variable
+  let apiKey;
+  
+  if (window.electronAPI && window.electronAPI.getEnvVar) {
+    try {
+      apiKey = await window.electronAPI.getEnvVar("GEMINI_API_KEY");
+    } catch (error) {
+      console.error("Error getting API key from environment:", error);
+    }
   }
+  
+  // Fall back to localStorage if env variable is not set
+  if (!apiKey) {
+    apiKey = localStorage.getItem("geminiApiKey");
+  }
+  
+  if (!apiKey) {
+    throw new Error("API key not found in environment variables or localStorage");
+  }
+  
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "models/gemini-2.0-flash-exp",
+    model: "models/gemini-2.5-pro-exp-03-25",
   });
 
   const results = await Promise.all(
@@ -134,7 +150,7 @@ const CursorControl: React.FC<CursorControlProps> = ({ lastCapturedFrame }) => {
 
   useEffect(() => {
     setConfig({
-      model: "models/gemini-2.0-flash-exp",
+      model: "models/gemini-2.5-pro-exp-03-25",
       generationConfig: {
         temperature: 0.5,
         responseModalities: "audio",
