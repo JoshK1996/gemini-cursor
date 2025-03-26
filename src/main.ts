@@ -68,18 +68,17 @@ const createControlsWindow = () => {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: false,
+      // Enable dev tools
+      devTools: true
     },
   });
 
-  controlsWindow.loadURL(
-    MAIN_WINDOW_VITE_DEV_SERVER_URL
-      ? `${MAIN_WINDOW_VITE_DEV_SERVER_URL}/apps/controls/index.html`
-      : `file://${path.join(
-          app.getAppPath(),
-          "dist",
-          "apps/controls/index.html"
-        )}`
-  );
+  // For testing: try loading the minimal test page first to diagnose issues
+  const testUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL
+    ? `${MAIN_WINDOW_VITE_DEV_SERVER_URL}/apps/controls/minimal.html`
+    : `file://${path.join(app.getAppPath(), "dist", "apps/controls/minimal.html")}`;
+
+  controlsWindow.loadURL(testUrl);
 
   // Open the DevTools in dev mode
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -92,6 +91,21 @@ const createControlsWindow = () => {
 
   controlsWindow.on("ready-to-show", () => {
     controlsWindow?.show();
+  });
+
+  // Add error handler for loading failures
+  controlsWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Failed to load URL:', errorCode, errorDescription);
+    
+    // If the minimal test page fails, try the regular page
+    if (testUrl.includes('minimal.html')) {
+      const regularUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL
+        ? `${MAIN_WINDOW_VITE_DEV_SERVER_URL}/apps/controls/index.html`
+        : `file://${path.join(app.getAppPath(), "dist", "apps/controls/index.html")}`;
+      
+      console.log('Falling back to regular page:', regularUrl);
+      controlsWindow?.loadURL(regularUrl);
+    }
   });
 };
 
