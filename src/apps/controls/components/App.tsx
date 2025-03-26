@@ -12,6 +12,7 @@ declare global {
   interface Window {
     electronAPI: {
       moveCursor: (x: number, y: number) => void;
+      getEnvVar: (key: string) => Promise<string | null>;
     };
   }
 }
@@ -30,9 +31,26 @@ const App = () => {
   );
 
   useEffect(() => {
-    const savedApiKey = localStorage.getItem(apiKeyStorageKey);
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
+    // First try to get API key from environment variable
+    if (window.electronAPI && window.electronAPI.getEnvVar) {
+      window.electronAPI.getEnvVar("GEMINI_API_KEY").then((envApiKey) => {
+        if (envApiKey) {
+          setApiKey(envApiKey);
+          return;
+        }
+        
+        // Fall back to localStorage if env variable is not set
+        const savedApiKey = localStorage.getItem(apiKeyStorageKey);
+        if (savedApiKey) {
+          setApiKey(savedApiKey);
+        }
+      });
+    } else {
+      // Fall back to localStorage if electronAPI is not available
+      const savedApiKey = localStorage.getItem(apiKeyStorageKey);
+      if (savedApiKey) {
+        setApiKey(savedApiKey);
+      }
     }
   }, []);
 
@@ -82,7 +100,7 @@ const App = () => {
                       type="password"
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
-                      placeholder="Enter your API key"
+                      placeholder="Enter your API key or set GEMINI_API_KEY env variable"
                     />
                     <button type="submit">Update</button>
                   </div>
