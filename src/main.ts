@@ -40,6 +40,12 @@ const createCursorWindow = () => {
     cursorWindow.setMovable(false);
   }
 
+  const appDirectory = MAIN_WINDOW_VITE_DEV_SERVER_URL 
+    ? MAIN_WINDOW_VITE_DEV_SERVER_URL
+    : `file://${path.join(app.getAppPath(), "dist")}`;
+
+  console.log("App directory for cursor:", appDirectory);
+  
   cursorWindow.loadURL(
     MAIN_WINDOW_VITE_DEV_SERVER_URL
       ? `${MAIN_WINDOW_VITE_DEV_SERVER_URL}/apps/cursor/index.html`
@@ -73,17 +79,60 @@ const createControlsWindow = () => {
     },
   });
 
-  // For testing: try loading the minimal test page first to diagnose issues
-  const testUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL
-    ? `${MAIN_WINDOW_VITE_DEV_SERVER_URL}/apps/controls/minimal.html`
-    : `file://${path.join(app.getAppPath(), "dist", "apps/controls/minimal.html")}`;
+  // Instead of loading a file, directly load some HTML content
+  controlsWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <title>Direct Test Page</title>
+        <style>
+          body {
+            font-family: sans-serif;
+            background-color: #0f172a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+          }
+          .container {
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Gemini Cursor Direct Test</h1>
+          <p>If you can see this page, direct content loading works.</p>
+          <div id="app-info"></div>
+          <button id="loadApp">Try Loading Main App</button>
+        </div>
 
-  controlsWindow.loadURL(testUrl);
+        <script>
+          document.getElementById('app-info').textContent = 
+            'App Path: ' + ${JSON.stringify(app.getAppPath())} + 
+            ', Is Dev: ' + ${JSON.stringify(!!MAIN_WINDOW_VITE_DEV_SERVER_URL)};
+            
+          document.getElementById('loadApp').addEventListener('click', () => {
+            const appUrl = ${JSON.stringify(
+              MAIN_WINDOW_VITE_DEV_SERVER_URL
+                ? `${MAIN_WINDOW_VITE_DEV_SERVER_URL}/apps/controls/index.html`
+                : `file://${path.join(app.getAppPath(), "dist", "apps/controls/index.html")}`
+            )};
+            window.location.href = appUrl;
+          });
+        </script>
+      </body>
+    </html>
+  `));
 
   // Open the DevTools in dev mode
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    controlsWindow.webContents.openDevTools();
-  }
+  controlsWindow.webContents.openDevTools();
 
   controlsWindow.on("closed", () => {
     controlsWindow = null;
@@ -94,18 +143,30 @@ const createControlsWindow = () => {
   });
 
   // Add error handler for loading failures
-  controlsWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
-    console.error('Failed to load URL:', errorCode, errorDescription);
+  controlsWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error('Failed to load URL:', validatedURL, errorCode, errorDescription);
     
-    // If the minimal test page fails, try the regular page
-    if (testUrl.includes('minimal.html')) {
-      const regularUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL
-        ? `${MAIN_WINDOW_VITE_DEV_SERVER_URL}/apps/controls/index.html`
-        : `file://${path.join(app.getAppPath(), "dist", "apps/controls/index.html")}`;
-      
-      console.log('Falling back to regular page:', regularUrl);
-      controlsWindow?.loadURL(regularUrl);
-    }
+    // If loading failed, try using direct content loading
+    controlsWindow?.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+          <title>Error Page</title>
+          <style>
+            body { background: #0f172a; color: white; font-family: sans-serif; padding: 2rem; }
+            .error { color: #f87171; }
+          </style>
+        </head>
+        <body>
+          <h1 class="error">Loading Error</h1>
+          <p>Failed to load: ${validatedURL}</p>
+          <p>Error: ${errorCode} - ${errorDescription}</p>
+          <p>App Path: ${app.getAppPath()}</p>
+          <p>Is Dev: ${!!MAIN_WINDOW_VITE_DEV_SERVER_URL}</p>
+        </body>
+      </html>
+    `));
   });
 };
 
