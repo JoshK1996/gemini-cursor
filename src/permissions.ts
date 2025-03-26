@@ -125,3 +125,15 @@ export class PermissionManager {
     }
   }
 }
+
+// Add the missing function that's imported in main.ts
+export function setPermissionsEventListeners(windows: (BrowserWindow | null)[]) {
+  const permissionManager = new PermissionManager();
+  
+  // Setup permissions for each window
+  windows.forEach(window => {
+    if (window) {
+      permissionManager.requestAppPermissions(window);
+    }
+  });
+}
