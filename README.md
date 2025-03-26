@@ -1,64 +1,73 @@
-# Gemini Cursor ✨
+# Gemini Cursor
 
-A second AI cursor 🖱️ for your desktop that can see your screen, hear you speak, and talk to you.
+An AI cursor for desktop using Gemini 2.5 Pro (Experimental)
 
 ![Demo](./readme/demo.gif)
 
-Powered by Google's Gemini 2.0 Flash (Experimental) model, the Multimodal Live API, Pointing, and Function calling capabilities.
+## Overview
 
-Created by [@13point5](https://x.com/27upon2).
+Gemini Cursor is an experimental application that allows you to control your mouse cursor with natural language using Gemini AI. The app captures your screen and uses computer vision AI to analyze the content, allowing you to refer to elements on your screen.
 
-## Features
+## Changes from Original Repository
 
-- 🖱️ Second AI cursor on your desktop
-- 🚀 Multimodality: The model can see 📸, hear 🎤, and speak 🔊
-- ⚡️ Real-time with low latency
+This fork contains the following important modifications:
 
-## Use Cases
-
-- 📚 Understanding complex diagrams in Research papers, Architecture diagrams, etc
-- 🌐 Navigating complex websites to perform a task like adding a payment method on Amazon
-- 📝 Real time AI tutor with whiteboards
-
-## Tech Stack
-
-- Frontend: Electron, React, TypeScript, Vite
-- AI: Google Gemini API
-
-## Acknowledgements
-
-- A lot of code from the Gemini [Multimodal Live API Web console](https://github.com/google-gemini/multimodal-live-api-web-console)
-- Built using Google's [Multimodal Live API](https://ai.google.dev/gemini-api/docs/multimodal-live)
-
-## Prerequisites
-
-- Node.js (v16 or higher)
-- npm
-- [Gemini API key](https://aistudio.google.com/apikey)
+1. Updated to use the latest `gemini-2.5-pro-exp-03-25` model
+2. Added secure environment variable handling for the API key
+3. Enhanced multi-screen capture capability
 
 ## Installation
 
-1. Clone the repository
-
 ```bash
-git clone https://github.com/13point5/gemini-cursor.git
+# Clone the repository
+git clone https://github.com/JoshK1996/gemini-cursor.git
+
+# Navigate to the project directory
 cd gemini-cursor
-```
 
-2. Install dependencies
-
-```bash
+# Install dependencies
 npm install
+
+# Start the application
+npm start
 ```
 
-3. Run the app
+## Setting Up Your API Key (IMPORTANT)
 
-```bash
-npm run start
-```
+To use Gemini Cursor, you need a Gemini API key. For security reasons, we **strongly recommend** using an environment variable instead of hardcoding your API key.
 
-4. Enter the Gemini API key in the app
+### Setting Environment Variables
 
-5. Click the Play button and the Share Screen button
+#### Windows
+1. Open Command Prompt as Administrator
+2. Set a persistent environment variable:
+   ```
+   setx GEMINI_API_KEY "your-api-key-here"
+   ```
+3. Restart your terminal or computer for the change to take effect
 
-6. Minimize the app and enjoy!
+#### macOS/Linux
+1. Edit your shell profile file (`.bash_profile`, `.zshrc`, etc.):
+   ```bash
+   echo 'export GEMINI_API_KEY="your-api-key-here"' >> ~/.zshrc
+   ```
+2. Reload your shell configuration:
+   ```bash
+   source ~/.zshrc
+   ```
+
+### Alternative: Entering the API Key in the App
+
+You can also enter your API key directly in the app's input field, but be aware that it will be stored in the browser's local storage, which is less secure than using environment variables.
+
+## Multi-Screen Support
+
+This version attempts to capture all connected displays when you initiate screen capture. The implementation uses standard Web APIs with additional parameters to prioritize capturing the entire desktop environment rather than just a single window or screen.
+
+Due to browser security restrictions, you will still need to select what to share when prompted, but the app is now configured to prefer capturing all monitors when available.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+The Gemini API integration uses components licensed under the Apache License 2.0 - see the LICENSE_GOOGLE file for details.
