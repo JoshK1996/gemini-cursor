@@ -42,13 +42,24 @@ export function useScreenCapture(): UseMediaStreamResult {
 
   const start = async () => {
     try {
+      // Use displaySurface: "monitor" to capture all screens
+      // This is the most reliable way to capture all screens across different OSes
       const mediaStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
           width: { ideal: 1920 },
           height: { ideal: 1080 },
           frameRate: { ideal: 30 },
+          displaySurface: "monitor" as any, // TypeScript may not recognize this property
         },
         audio: false,
+        // Use preferCurrentTab: false to avoid defaulting to the current tab (Chrome)
+        preferCurrentTab: false as any,
+        // Request selection of all monitors if supported
+        selfBrowserSurface: "exclude" as any,
+        // Some browsers use this to specify capture type
+        surfaceSwitching: "include" as any,
+        // Allow for multiple monitors if supported
+        monitorTypeSurfaces: "include" as any,
       });
       setStream(mediaStream);
       setIsStreaming(true);
